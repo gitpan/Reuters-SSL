@@ -6,7 +6,7 @@ WriteMakefile(
     'VERSION_FROM' => 'SSL.pm', # finds $VERSION
     'LIBS'	=> ['-lssl -lsocket -lnsl'],   # e.g., '-lm' 
     'DEFINE'	=> '',     # e.g., '-DHAVE_SOMETHING' 
-    'INC'	=> '-I/testusers/luxnet/perl/ssl/ssl/include',     # e.g., '-I/usr/include/other' 
-    'CC'	=> '/opt/soft/SUNWspro/bin/cc',
-    'LD'	=> '/opt/soft/SUNWspro/bin/cc',
+    'INC'	=> '',     # e.g., '-I/usr/include/other' 
+    'CC'	=> 'cc',
+    'LD'	=> 'cc',
 );

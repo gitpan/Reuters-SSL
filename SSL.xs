@@ -92,6 +92,7 @@ my_callback_function(int Channel, SSL_EVENT_TYPE Event, SSL_EVENT_INFO* EventInf
 	PUTBACK;
 	FREETMPS;
 	LEAVE;
+	return retval;
 }
 
 
@@ -123,12 +124,16 @@ sslDismount(Channel)
 	RETVAL = sslDismount(Channel);
 
 int
-sslSnkOpen(Channel, ServiceName, ItemName)
+sslSnkOpen(Channel, ServiceName, ItemName, ... )
 	int Channel;
 	char *ServiceName;
 	char *ItemName;
+	PREINIT:
+	SSL_SINK_OPEN_OPTION OptionValue = 2;
 	CODE:
-	RETVAL = sslSnkOpen(Channel, ServiceName, ItemName, NULL, NULL);
+	if ( items > 3 )
+	  OptionValue = (SSL_SINK_OPEN_OPTION)SvIV(ST(3));
+	RETVAL = sslSnkOpen(Channel, ServiceName, ItemName, NULL, SSL_SOO_REQUEST_TYPE, &OptionValue, NULL);
 	OUTPUT:
 	RETVAL
 
@@ -140,7 +145,7 @@ sslRegisterCallBack(Channel, EventType, Callback)
 	CODE:
 	sv_setsv (my_callback, Callback);
 	EventType = SSL_EC_DEFAULT_HANDLER;
-	RETVAL = sslRegisterClassCallBack(Channel, EventType, my_callback_function, NULL);
+	RETVAL = sslRegisterClassCallBack(Channel, (SSL_EVENT_TYPE) EventType, my_callback_function, NULL);
 	OUTPUT:
 	RETVAL
 
@@ -182,7 +187,7 @@ sslGetProperty(Channel, OptionCode)
 	int retval;
 	PPCODE:
 	optionPointer = &optionValue;
-	retval = sslGetProperty(Channel, OptionCode, optionPointer);
+	retval = sslGetProperty(Channel, (SSL_OPTION_CODE)OptionCode, optionPointer);
 	EXTEND(SP, 2);
 	PUSHs(sv_2mortal(newSViv(retval)));
 	PUSHs(sv_2mortal(newSViv(optionValue)));
@@ -215,6 +220,16 @@ sslPostEvent(Channel, EventType, pEventInfo)
 	item.InsertName  = (char*)SvPV(*hv_fetch(EventInfo,"InsertName" ,10,0),len);
 	item.InsertTag = NULL;
 	item.DataLength =         SvIV(*hv_fetch(EventInfo,"DataLength", 10,0));
-	RETVAL = sslPostEvent(Channel, (SSL_EVENT_TYPE)EventType, &item);
+	RETVAL = sslPostEvent(Channel, (SSL_EVENT_TYPE)EventType, (SSL_EVENT_INFO*)&item);
 	OUTPUT:
 	RETVAL
+
+int
+sslErrorLog(LogFileName, LogFileSize)
+	char *LogFileName;
+	int LogFileSize;
+	CODE:
+	RETVAL = sslErrorLog(LogFileName, LogFileSize);
+	OUTPUT:
+	RETVAL
+

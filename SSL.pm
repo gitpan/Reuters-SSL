@@ -15,9 +15,10 @@ require AutoLoader;
 	
 );
 @EXPORT = qw(sslInit sslSnkMount sslSnkOpen sslRegisterCallBack sslDispatchEvent
-	sslGetProperty sslGetErrorText sslSnkClose sslDismount sslPostEvent);
+	sslGetProperty sslGetErrorText sslSnkClose sslDismount sslPostEvent
+	sslErrorLog);
 
-$VERSION = '0.50';
+$VERSION = '0.52';
 
 bootstrap Reuters::SSL $VERSION;
 
@@ -39,7 +40,7 @@ Reuters::SSL - Perl extension for Reuters SSL Source Sink Library
 
   $retval = sslInit();
   $channel = sslSnkMount(username);
-  $retval = sslSnkOpen(Channel, Service, Item);
+  $retval = sslSnkOpen(Channel, Service, Item [, RequestType] );
   $retval = sslRegisterCallback(Channel, EventType, refToCallbackFunction);
   $retval = sslDispatchEvent(Channel, MaxEvents);
   $retval = sslSnkClose(Channel, Service, Item);
@@ -47,6 +48,7 @@ Reuters::SSL - Perl extension for Reuters SSL Source Sink Library
   ($retval,$fd) = sslGetPropery(Channel,1);
   $ErrorText = sslGetErrorText();
   $retval = sslPostEvent(Channel, EventType, InfoHash);
+  $retval = sslErrorLog(FileName, maxFileSize);
 
   sub callback()
   {
@@ -120,6 +122,16 @@ to the client. If you have no idea how this
 works see the test.pl. It's quite self
 explaning.
 
+since 0.52:
+You can pass an additional parameter to set
+the Request_Type to:
+SSL_RT_NORMAL ( the default - value )
+SSL_RT_SNAPSHOT ( Only 1 Image is received 
+	and the item is closed by the lib )
+SSL_RT_HOST ( like normal, but the source is 
+	instructed to retrieve the item from 
+	the remote host. UNTESTED!! )
+
 SinkClose:
 Once you have decided not to receive any
 further updates for a given Item you
@@ -185,6 +197,10 @@ and receiving data. One ugly could be
 found in the test.pl but it is really
 not very useful.
 
+If you feel that there is still something
+else missing, don't hesitate to contact
+me and I will see what I can do for you.
+
 
 WARNING
 The Code is actually in alpha release and
@@ -203,5 +219,17 @@ of the GPL.
 
 0.02 Added parameter checks to xs-functions
 0.50 Found some memory leaks but was unable to fix them
+0.51 Fixed forgotten returnvalue of callback
+     and added some static casts to avoid compiler warnings
+     (Thanks to Waseem Wali)
+0.52 added sslErrorLog - function
+     to log into defined files and not only
+     the default files 
+     added optional Parameter to
+     sslSnkOpen to change the 
+     RequestType to Normal/Snapshot/Host
+     worked on test.pl to make the
+     output more readable
+     (Thanks to Waseem Wali for proposals)
 
 =cut

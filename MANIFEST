@@ -4,3 +4,4 @@ Makefile.PL
 SSL.pm
 SSL.xs
 test.pl
+README
