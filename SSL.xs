@@ -7,15 +7,18 @@
 /*******************************/
 /* Local Static Vars           */
 /*******************************/
-
 static SV *my_callback; /* Pointer To Function for Registered Callback */
-char up[2];
-char down[4];
 
 
 /******************************/
 /* local callback             */
 /******************************/
+/* this function is called from within the sslDispatchEvent - function automatically
+   when there is an event in the queue to be processed. If the program has registered
+   before a callback function back into the perl - program via the sslregsiterCallBack 
+   then this callback
+   function will be called with the translated structure to hash.
+*/
 static SSL_EVENT_RETCODE
 my_callback_function(int Channel, SSL_EVENT_TYPE Event, SSL_EVENT_INFO* EventInfo, void *ClientEventTag)
 {
@@ -54,14 +57,6 @@ my_callback_function(int Channel, SSL_EVENT_TYPE Event, SSL_EVENT_INFO* EventInf
 	{
 		SSL_SERVICE_INFO_TYPE *item = (SSL_SERVICE_INFO_TYPE*)EventInfo;
 		hv_store(hImage,"ServiceName",11,newSVpv(item->ServiceName,strlen(item->ServiceName)),0);
-		/* switch (item->ServiceStatus)
-		{
-			SSL_SS_SERVER_DOWN:
-			hv_store(hImage,"ServiceStatus",13,newSVpv(down,4),0);
-			SSL_SS_SERVER_UP:
-			hv_store(hImage,"ServiceStatus",13,newSVpv(up,2),0);
-		}
-		*/
 		hv_store(hImage,"ServiceStatus",13,newSViv((int)item->ServiceStatus),0);
 	}
 	if (Event == SSL_ET_ITEM_STATUS_STALE || Event == SSL_ET_ITEM_STATUS_OK 
@@ -103,10 +98,7 @@ my_callback_function(int Channel, SSL_EVENT_TYPE Event, SSL_EVENT_INFO* EventInf
 MODULE = Reuters::SSL		PACKAGE = Reuters::SSL		
 
 BOOT:
-printf("Initializing Reuters SSL Library\n");
 my_callback = newSVsv (&PL_sv_undef);
-strcpy (up, "UP");
-strcpy (down, "DOWN");
 
 
 int
@@ -213,18 +205,16 @@ sslPostEvent(Channel, EventType, pEventInfo)
 	HV * EventInfo;
 	STRLEN len;
 	CODE:
+	if ( SvTYPE( SvRV( pEventInfo ) ) != SVt_PVHV )
+	{
+		croak ("Argument #3 not of type reference to hash for EventInfo!\n");
+	}
 	EventInfo = (HV*)SvRV(pEventInfo);
 	item.Data =        (char*)SvPV(*hv_fetch(EventInfo,"Data"       , 4,0),len);
 	item.ServiceName = (char*)SvPV(*hv_fetch(EventInfo,"ServiceName",11,0),len);
 	item.InsertName  = (char*)SvPV(*hv_fetch(EventInfo,"InsertName" ,10,0),len);
 	item.InsertTag = NULL;
 	item.DataLength =         SvIV(*hv_fetch(EventInfo,"DataLength", 10,0));
-	/*
-	printf("[XS::sslPostEvent] InsertName :%s\n",item.InsertName);
-	printf("[XS::sslPostEvent] ServiceName:%s\n",item.ServiceName);
-	printf("[XS::sslPostEvent] DataLength:%d\n",item.DataLength);
-	printf("[XS::sslPostEvent] Data      :%s\n",item.Data);
-	*/
 	RETVAL = sslPostEvent(Channel, (SSL_EVENT_TYPE)EventType, &item);
 	OUTPUT:
 	RETVAL

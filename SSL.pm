@@ -17,7 +17,7 @@ require AutoLoader;
 @EXPORT = qw(sslInit sslSnkMount sslSnkOpen sslRegisterCallBack sslDispatchEvent
 	sslGetProperty sslGetErrorText sslSnkClose sslDismount sslPostEvent);
 
-$VERSION = '0.01';
+$VERSION = '0.50';
 
 bootstrap Reuters::SSL $VERSION;
 
@@ -179,6 +179,13 @@ Actually there is only the Sink - Methods
 implemented and the PostEvent for
 contributing data to the triarch.
 
+Comfortable Functions for bulding up
+the data - string for contributing
+and receiving data. One ugly could be
+found in the test.pl but it is really
+not very useful.
+
+
 WARNING
 The Code is actually in alpha release and
 not yet sophisticated tested and verified.
@@ -191,5 +198,10 @@ this documentation.
 
 This software is published under the terms
 of the GPL.
+
+=head1 CHANGES
+
+0.02 Added parameter checks to xs-functions
+0.50 Found some memory leaks but was unable to fix them
 
 =cut
